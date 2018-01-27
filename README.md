@@ -3,7 +3,7 @@ Spar-Pi
 
 This project allows you to build a component comprised of an accelerometer and three LEDs that can sit on top of any flat-topped punching back (like a Wavemaster). The center, left, or right lights will flash indicating that you should hit that side of the bag. The accelerometer is used to measure time to impact as well as an approximation of force.
 
-##Required Hardware:
+## Required Hardware:
 Raspberry Pi
 Breadboard
 3 LEDs
@@ -12,7 +12,7 @@ Jumper wires
 ADXL345 accelerometer
 
 
-##Initial Setup:
+## Initial Setup:
 Add i2C modules to pi:
 ```
 sudo nano /etc/module
