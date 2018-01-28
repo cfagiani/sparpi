@@ -13,10 +13,11 @@ class HitDetector(object):
     Class that uses the accelerometer to detect when the bag is hit.
     """
 
-    def __init__(self, threshold, timeout, samples):
+    def __init__(self, threshold, timeout, samples, debug=False):
         self.threshold = threshold
         self.orientation = {'r': [0, 0, 0], 'c': [0, 0, 0], 'l': [0, 0, 0]}
         self.samples = samples
+        self.debug = debug
         self.__calibrate(timeout)
 
     def __calibrate(self, timeout):
@@ -50,11 +51,13 @@ class HitDetector(object):
             for val in diff:
                 if abs(val) > self.threshold:
                     diff = self.get_more_samples(diff)
-                    if side is None or side == self.get_hit_side(diff):
-                        return diff
-                    else:
-                        # TODO do we want to return something else indicating the wrong side was hit?
-                        return None
+                    self.wait_for_recoil(diff)
+                    # TODO fix side detection. current version is inaccurate
+                    # if side is None or side == self.get_hit_side(diff):
+                    return diff
+                    # else:
+                    # TODO do we want to return something else indicating the wrong side was hit?
+                    #   return None
         return None
 
     def get_hit_side(self, hit):
@@ -71,11 +74,16 @@ class HitDetector(object):
         max_reading = diff
         for i in range(0, self.samples):
             new_reading = sensor.get_sample()
+            if self.debug:
+                print new_reading
             new_max = sum([abs(z) for z in new_reading])
             if new_max > max_value:
                 max_reading = new_reading
                 max_value = new_max
         return max_reading
+
+    def wait_for_recoil(self, diff):
+        pass
 
 
 class SensorInitializationError(Exception):

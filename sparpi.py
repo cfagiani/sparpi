@@ -52,5 +52,5 @@ if __name__ == "__main__":
                            dest='config')
     argparser.add_argument("-w", "--workout", metavar='workout', default='random', choices=['random', 'alternating'],
                            help='Desired workout mode', dest='mode')
-    argparser.add_argument("-t", "--time", metavar='time', default=2, type=int, help="Time in minutes for the workout")
+    argparser.add_argument("-t", "--time", metavar='time', default=2, type=float, help="Time in minutes for the workout")
     main(argparser.parse_args())
