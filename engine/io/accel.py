@@ -11,7 +11,7 @@ POWER_CTL_REG = 0x2D
 FIRST_DATA_REG = 0x32
 NUM_DATA_REG = 6
 
-BW_RATE = 0x0F  # x0B = 100 Hz,  x0C = 200 Hz, x0D = 400 Hz, x0E = 800 Hz, x0F = 1600 Hz
+BW_RATE = 0x0E  # x0B = 100 Hz,  x0C = 200 Hz, x0D = 400 Hz, x0E = 800 Hz, x0F = 1600 Hz
 
 MEASURE_MODE = 0x08
 RANGE = 0x03  # 16 g (max)
@@ -39,12 +39,28 @@ class Accelerometer(object):
         self.__write_register(POWER_CTL_REG, MEASURE_MODE)
 
     def __write_register(self, reg, data):
+        """
+        Writes the data to the device register at the address passed in.
+        :param reg:
+        :param data:
+        :return:
+        """
         bus.write_byte_data(self.address, reg, data)
 
     def __read_register(self, reg):
+        """
+        Reads the device register at the specified address as byte data.
+        :param reg:
+        :return:
+        """
         return bus.read_byte_data(self.address, reg)
 
     def __set_range(self, range_val=RANGE):
+        """
+        Sets the g-force range config value on the device.
+        :param range_val:
+        :return:
+        """
         # range is specified using the DATA_FORMAT_REG
         # the range is only in the lowest 2 bits.
         # need to preserve other bits
@@ -59,6 +75,10 @@ class Accelerometer(object):
         self.__write_register(DATA_FORMAT_REG, existing)
 
     def get_sample(self):
+        """
+        Returns a 3-tuple containing acceleration (in meters per second per second) in each axis (x,y,z).
+        :return:
+        """
         sensor_data = bus.read_i2c_block_data(self.address, FIRST_DATA_REG, NUM_DATA_REG)
 
         axes = []
@@ -68,10 +88,16 @@ class Accelerometer(object):
                 round(get_value(sensor_data[i], sensor_data[i + 1])
                       * SCALE * GRAVITY, 4))
 
-        return (axes[0], axes[1], axes[2])
+        return axes[0], axes[1], axes[2]
 
 
 def get_value(byte1, byte2):
+    """
+    Converts a 2-byte value into a float
+    :param byte1:
+    :param byte2:
+    :return:
+    """
     val = byte1 | (byte2 << 8)
     if val & (1 << 16 - 1):
         val = val - (1 << 16)

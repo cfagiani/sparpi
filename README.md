@@ -60,10 +60,17 @@ sudo python sparpi.py
 ```
 This will run a "random" workout for 2 minutes. The lenght of the workout can be changed via the --time command line option.
 
-TODO:
-selectable workout types (random, combinations)
-build-your-own combination (ui configurable)
-count-based workouts
-web-based interface for selecting workout, showing last impact force, reaction time
+## Unit Tests
+Tests are contained in the "test" directory. To run all tests:
+```
+python -m unittest discover -v 
+```
+
+## TODO:
+* selectable workout types (random, combinations)
+* build-your-own combination (ui configurable)
+* hit count-based workouts
+* web-based interface for selecting workout, showing last impact force, reaction time
+* more tests
 
 

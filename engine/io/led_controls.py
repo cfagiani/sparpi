@@ -16,6 +16,10 @@ class LedController(object):
     """
 
     def __init__(self, lights):
+        """
+        Initializes GPIO and stores the mapping of light identifier to pin number.
+        :param lights: dictionary where key is light identifier and value is pin number for that light.
+        """
         self.lights = lights
         GPIO.setmode(GPIO.BCM)
         for pin in self.lights.itervalues():
@@ -33,6 +37,7 @@ class LedController(object):
             time.sleep(interval)
 
     def activate_lights(self, vals):
+        """Turns all lights in vals on and all other configured lights off."""
         for n, p in self.lights.iteritems():
             if n in vals:
                 GPIO.output(p, True)
@@ -40,6 +45,10 @@ class LedController(object):
                 GPIO.output(p, False)
 
     def cleanup(self):
+        """
+        Performs GPIO cleanup. This should only be called prior to exiting.
+        :return:
+        """
         for pin in self.lights.itervalues():
             GPIO.output(pin, False)
         GPIO.cleanup()
