@@ -25,9 +25,9 @@ class TestWorkoutController(unittest.TestCase):
         :return:
         """
 
-        controller = workout_controller.WorkoutController(os.path.join(DATA_DIR_PATH, "test.ini"),
-                                                          controller=self.led,
-                                                          detector=self.detector)
+        workout_controller.WorkoutController(os.path.join(DATA_DIR_PATH, "test.ini"),
+                                             controller=self.led,
+                                             detector=self.detector)
         self.assertEqual(1, self.led.get_invocation_count("flash"))
         self.assertEqual(3, self.detector.get_invocation_count("calibrate_hit"))
 
@@ -47,5 +47,5 @@ class TestWorkoutController(unittest.TestCase):
         self.assertEqual(1, self.led.get_invocation_count("cleanup"))
 
 
-def throw_error(self):
+def throw_error(val):
     raise SensorInitializationError

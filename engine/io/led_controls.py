@@ -9,6 +9,8 @@ try:
 except ImportError:
     raise ImportError("GPIO must be installed. Please install and try again")
 
+GPIO.setmode(GPIO.BCM)
+
 
 class LedController(object):
     """
@@ -21,7 +23,7 @@ class LedController(object):
         :param lights: dictionary where key is light identifier and value is pin number for that light.
         """
         self.lights = lights
-        GPIO.setmode(GPIO.BCM)
+
         for pin in self.lights.itervalues():
             GPIO.setup(pin, GPIO.OUT, initial=False)
 
@@ -37,6 +39,7 @@ class LedController(object):
             time.sleep(interval)
 
     def activate_lights(self, vals):
+        self.setup_pins()
         """Turns all lights in vals on and all other configured lights off."""
         for n, p in self.lights.iteritems():
             if n in vals:
@@ -52,3 +55,12 @@ class LedController(object):
         for pin in self.lights.itervalues():
             GPIO.output(pin, False)
         GPIO.cleanup()
+
+    def setup_pins(self):
+        """
+        Since we're calling the GPIO from another thread it seems we need to do the setup each time.
+        :return:
+        """
+        GPIO.setmode(GPIO.BCM)
+        for pin in self.lights.itervalues():
+            GPIO.setup(pin, GPIO.OUT)

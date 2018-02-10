@@ -14,8 +14,11 @@ class HitDetector(object):
 
     def __init__(self, threshold, timeout, samples, sensor=None):
         self.threshold = threshold
-        self.reference_curves = {}
+        self.reference_angles = {}
+        self.baseline = None
         self.samples = samples
+        self.stability_threshold = 5
+        self.min_calibration_distance = 10
         if sensor is None:
             from engine.io import accel
             self.sensor = accel.Accelerometer()
@@ -32,18 +35,29 @@ class HitDetector(object):
         :param timeout:
         :return:
         """
-        baseline = self.sensor.get_sample()
+        baseline = self.wait_for_stability(timeout)
+        if baseline:
+            self.baseline = baseline
+        else:
+            raise SensorInitializationError("Sensor readings did not stabilize. Cannot calibrate.")
+
+    def wait_for_stability(self, timeout):
+        stable_count = 0
         deadline = time.time() + timeout
-        stable = False
-        while time.time() < deadline and not stable:
+        baseline = self.baseline if self.baseline else self.sensor.get_sample()
+        while time.time() < deadline and stable_count < self.samples:
             new_val = self.sensor.get_sample()
             diff = tuple(map(operator.sub, baseline, new_val))
-            if all(abs(val) < self.threshold for val in diff):
-                stable = True
-                self.baseline = new_val
-                break
-        if not stable:
-            raise SensorInitializationError("Sensor readings did not stabilize. Cannot calibrate.")
+            if get_magnitude(diff) < self.stability_threshold:
+                stable_count += 1
+            else:
+                if self.baseline is None:
+                    baseline = new_val
+                stable_count = 0
+        if stable_count >= self.samples:
+            return baseline
+        else:
+            return None
 
     def calibrate_hit(self, side, timeout):
         """
@@ -55,13 +69,11 @@ class HitDetector(object):
         :param timeout:
         :return:
         """
-        val = self.wait_for_hit(None, timeout)
+        val, _ = self.wait_for_hit(None, timeout)
         if val is None:
             raise SensorInitializationError("Could not calibrate {dir} hit direction".format(dir=side))
-        curves = self.reference_curves.get(side, [])
-        data = self.get_samples(self.samples)
-        curves.append(normalize(data))
-        self.reference_curves[side] = curves
+        self.reference_angles[side] = get_angle(val)
+        return self.reference_angles[side]
 
     def wait_for_hit(self, side, timeout):
         """
@@ -76,87 +88,60 @@ class HitDetector(object):
         while time.time() < deadline:
             new_val = self.sensor.get_sample()
             diff = tuple(map(operator.sub, self.baseline, new_val))
-            for val in diff:
-                if abs(val) > self.threshold:
-                    samples = self.get_samples(self.samples)
-                    if side is None:
-                        return samples
-                    else:
-                        detected_side = self.get_hit_side(normalize(samples))
-                        if side == detected_side:
-                            return samples
-                        else:
-                            # TODO do we want to return something else indicating the wrong side was hit?
-                            return None
-        return None
+            mag = get_magnitude(diff)
+            if mag > self.threshold:
+                if side is None:
+                    return diff, True
+                else:
+                    detected_side = get_hit_side(self.reference_angles, get_angle(diff))
+                if side == detected_side:
+                    return diff, True
+                else:
+                    return diff, False
+        return None, False
 
-    def get_hit_side(self, hit):
-        min_side = None
-        min_val = sys.float_info.max
-        for side, ref_curves in self.reference_curves.iteritems():
-            dist = 0
-            for ref_curve in ref_curves:
-                dist += get_procrustes_dist(hit, ref_curve)
-            if dist < min_val:
-                min_side = side
-                min_val = dist
-        return min_side
-
-    def get_samples(self, num=1):
-        samples = []
-        for i in range(0, num):
-            samples.append(tuple(map(operator.sub, self.baseline, self.sensor.get_sample())))
-        return samples
+    def has_valid_calibration(self):
+        """
+        Returns True if all calibrated sides are at least min_calibration_distance apart.
+        :return:
+        """
+        for i, ang in self.reference_angles.iteritems():
+            for j, val in self.reference_angles.iteritems():
+                if i != j and abs(val - ang) < self.min_calibration_distance:
+                    return False
+        return True
 
 
-def get_procrustes_dist(a, b):
-    """ Calculates the Procrustes distance between two curves a and b. This assumes len(a) == len(b) and that each point
-    in each list is the same length.
-    At a high level, this computes sqrt(sum(A-B)^2)) (take the square root of the sum of squared differences of all
-    coordinates in A and B)
-    See https://en.wikipedia.org/wiki/Procrustes_analysis#Shape_comparison
+def get_magnitude(data):
+    """Computes the magnitude of the hit vector."""
+    return math.sqrt(sum([a * a for a in data]))
+
+
+def get_hit_side(reference_angles, hit_angle):
+    """Determines which reference_angle is closest to the hit_angle and returns that label."""
+    min_side = None
+    min_val = sys.float_info.max
+    for side, ref_angle in reference_angles.iteritems():
+        dist = abs(ref_angle - hit_angle)
+        if dist < min_val:
+            min_side = side
+            min_val = dist
+    return min_side
+
+
+def get_angle(hit):
     """
-    ssds = 0
-    for i, aVal in enumerate(a):
-        # get the difference between the 2 points
-        diff = tuple(map(operator.sub, aVal, b[i]))
-        # square them (i.e. take the dot product with itself)
-        ssds += sum(p * q for p, q in zip(diff, diff))
-    return math.sqrt(ssds)
-
-
-def normalize(data):
-    """
-    Returns a "normalized" copy of the data array by smoothing out the curve so it has min of -1 and max of 1
-    to reduce the impact of magnitude differences when comparing curves.
-    :param data:
+    Computes the angle of a hit.
+    :param hit:
     :return:
     """
-    # initialize mins/maxes to system limits
-    min_values = [sys.float_info.max, sys.float_info.max, sys.float_info.max]
-    max_values = [sys.float_info.min, sys.float_info.min, sys.float_info.min]
-    # iterate the data and find the min/max in each axis. Prevent storing 0 as the value
-    # to prevent divide by zero errors later
-    for point in data:
-        for pos, val in enumerate(point):
-            if val < min_values[pos] and val != 0:
-                min_values[pos] = val
-            if val > max_values[pos] and val != 0:
-                max_values[pos] = val
-
-    # build the "normalized" values by dividing negative values by -min and pos values by max
-    results = []
-    for point in data:
-        normalized = [0, 0, 0]
-        for pos, val in enumerate(point):
-            if val > 0:
-                normalized[pos] = val / max_values[pos]
-            elif val < 0:
-                normalized[pos] = val / (0 - min_values[pos])
-            else:
-                normalized[pos] = 0
-        results.append(tuple(normalized))
-    return results
+    mag = get_magnitude(hit)
+    if mag == 0:
+        mag = 1
+    x = math.acos(hit[0] / mag)
+    y = math.acos(hit[1] / mag)
+    angle = ((math.atan2(y, x) * 180) / math.pi) + 180
+    return angle
 
 
 class SensorInitializationError(Exception):

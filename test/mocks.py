@@ -1,3 +1,8 @@
+import time
+from random import randrange
+from engine.workout_controller import WorkoutState
+
+
 class Mock(object):
 
     def __init__(self):
@@ -29,8 +34,9 @@ class MockSensor(Mock):
         self.pos = 0
 
     def get_sample(self):
-        self.handle_invocation("get_sample")
-        val = self.data_provider(self.pos)
+        val = self.handle_invocation("get_sample")
+        if val is None:
+            val = self.data_provider(self.pos)
         self.pos += 1
         return val
 
@@ -68,3 +74,33 @@ class MockHitDetector(Mock):
 
     def calibrate_hit(self, side, timeout):
         return self.handle_invocation("calibrate_hit", side, timeout)
+
+    def wait_for_stability(self, timeout):
+        return 0, 0, 0
+
+    def has_valid_calibration(self):
+        return True
+
+
+class MockWorkoutController(Mock):
+
+    def __init__(self):
+        super(MockWorkoutController, self).__init__()
+        self.cur_workout = None
+        self.is_running = False
+
+    def start_workout(self, mode, workout_time):
+        self.is_running = True
+        self.cur_workout = WorkoutState(time.time() + workout_time)
+        while time.time() < self.cur_workout.deadline and self.is_running:
+            time.sleep(1)
+        self.is_running = False
+
+    def get_state(self):
+        sides = ['r', 'c', 'l']
+        self.cur_workout.record_hit(sides[randrange(0, 3)], randrange(1, 8), True if randrange(0, 2) < 1 else False)
+        self.cur_workout.server_time = time.time()
+        return self.cur_workout
+
+    def stop_workout(self):
+        self.is_running = False

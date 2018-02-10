@@ -11,7 +11,7 @@ POWER_CTL_REG = 0x2D
 FIRST_DATA_REG = 0x32
 NUM_DATA_REG = 6
 
-BW_RATE = 0x0E  # x0B = 100 Hz,  x0C = 200 Hz, x0D = 400 Hz, x0E = 800 Hz, x0F = 1600 Hz
+BW_RATE = 0x0D  # x0B = 100 Hz,  x0C = 200 Hz, x0D = 400 Hz, x0E = 800 Hz, x0F = 1600 Hz
 
 MEASURE_MODE = 0x08
 RANGE = 0x03  # 16 g (max)
