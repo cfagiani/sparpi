@@ -25,26 +25,29 @@ class TestWorkoutController(unittest.TestCase):
         :return:
         """
 
-        workout_controller.WorkoutController(os.path.join(DATA_DIR_PATH, "test.ini"),
-                                             controller=self.led,
-                                             detector=self.detector)
+        controller = workout_controller.WorkoutController(os.path.join(DATA_DIR_PATH, "test.ini"),
+                                                          controller=self.led,
+                                                          detector=self.detector)
+        controller.calibrate_orientation(1)
         self.assertEqual(1, self.led.get_invocation_count("flash"))
         self.assertEqual(3, self.detector.get_invocation_count("calibrate_hit"))
 
-    def test_init_exception_triggers_cleanup(self):
+    def test_calibration_error(self):
         """
         Ensures that an exception during initialization will trigger call to cleanup
         :return:
         """
-
+        got_error = False
         self.detector.register_override("calibrate_hit", throw_error)
         try:
             controller = workout_controller.WorkoutController(os.path.join(DATA_DIR_PATH, "test.ini"),
                                                               controller=self.led,
                                                               detector=self.detector)
+            controller.calibrate_orientation(2)
         except Exception as e:
             self.assertEquals(type(e), SensorInitializationError)
-        self.assertEqual(1, self.led.get_invocation_count("cleanup"))
+            got_error = True
+        self.assertTrue(got_error)
 
 
 def throw_error(val):

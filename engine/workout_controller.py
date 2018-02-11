@@ -24,6 +24,7 @@ class WorkoutController(object):
             config.read(conf_file)
             self.cur_workout = None
             self.is_running = False
+            self.calibration_timeout = config.getint("sensor", "calibration_timeout")
             if controller:
                 self.led_controller = controller
             else:
@@ -44,8 +45,6 @@ class WorkoutController(object):
                 self.hit_detector = hit_detector.HitDetector(config.getfloat("sensor", "threshold"),
                                                              config.getfloat("sensor", "calibration_timeout"),
                                                              config.getint("sensor", "samples"))
-            # ask the user to hit the bag so we can calibrate
-            self.calibrate_orientation(config.getint("sensor", "calibration_timeout"))
         except BaseException as e:
             # if we had an error during initialization call clean-up so we can release any resources
             try:
@@ -91,7 +90,8 @@ class WorkoutController(object):
         :param workout_time:
         :return:
         """
-
+        if not self.hit_detector.has_valid_calibration():
+            self.calibrate_orientation(5)
         self.is_running = True
         deadline = time.time() + workout_time * 60
         self.cur_workout = WorkoutState(deadline)
