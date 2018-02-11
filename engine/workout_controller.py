@@ -54,7 +54,10 @@ class WorkoutController(object):
                 raise e
             raise e
 
-    def calibrate_orientation(self, timeout):
+    def has_valid_calibration(self):
+        return self.hit_detector.has_valid_calibration()
+
+    def calibrate_orientation(self):
         """
         Since we do not know how the hardware was mounted on the bag, we need to ask the user to hit the bag on each side
         so we can calibrate the hit-detector for that direction. After getting a reading for all 3 directions, it will
@@ -66,15 +69,15 @@ class WorkoutController(object):
         for i in range(self.calibration_hits):
             self.led_controller.flash()
             self.led_controller.activate_lights('r')
-            r_val = self.hit_detector.calibrate_hit('r', timeout)
+            r_val = self.hit_detector.calibrate_hit('r', self.calibration_timeout)
             self.hit_detector.wait_for_stability(self.recoil_wait)
             time.sleep(0.5)
             self.led_controller.activate_lights('l')
-            l_val = self.hit_detector.calibrate_hit('l', timeout)
+            l_val = self.hit_detector.calibrate_hit('l', self.calibration_timeout)
             self.hit_detector.wait_for_stability(self.recoil_wait)
             time.sleep(0.5)
             self.led_controller.activate_lights('c')
-            c_val = self.hit_detector.calibrate_hit('c', timeout)
+            c_val = self.hit_detector.calibrate_hit('c', self.calibration_timeout)
             if self.hit_detector.has_valid_calibration():
                 log.debug("Got valid calibration r: {r}, l: {lv}, c: {c}".format(r=r_val, lv=l_val, c=c_val))
                 return
@@ -90,8 +93,6 @@ class WorkoutController(object):
         :param workout_time:
         :return:
         """
-        if not self.hit_detector.has_valid_calibration():
-            self.calibrate_orientation(5)
         self.is_running = True
         deadline = time.time() + workout_time * 60
         self.cur_workout = WorkoutState(deadline)

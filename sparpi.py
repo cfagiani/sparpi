@@ -13,7 +13,7 @@ def main(args):
     try:
         controller = workout_controller.WorkoutController(args.config)
         if args.headless:
-
+            controller.calibrate_orientation()
             workout_stats = controller.start_workout(args.mode, args.time)
             print("Workout Complete\n=================")
             print("Hits: {hits}\nMisses: {misses}".format(hits=len(workout_stats.correct_hits),

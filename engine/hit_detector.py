@@ -105,10 +105,13 @@ class HitDetector(object):
         Returns True if all calibrated sides are at least min_calibration_distance apart.
         :return:
         """
+        if len(list(self.reference_angles.itervalues())) != 3:
+            return False
         for i, ang in self.reference_angles.iteritems():
             for j, val in self.reference_angles.iteritems():
                 if i != j and abs(val - ang) < self.min_calibration_distance:
                     return False
+
         return True
 
 
