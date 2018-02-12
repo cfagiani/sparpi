@@ -68,7 +68,6 @@ python -m unittest discover -v
 
 ## TODO:
 * selectable workout types (random, combinations)
-* trigger calibration from UI rather than at startup when running non-headless
 * build-your-own combination (ui configurable)
 * hit count-based workouts
 * more tests
