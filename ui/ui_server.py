@@ -7,6 +7,7 @@ import logging
 import time
 import os
 from engine.workout_controller import HitStats
+from engine.hit_detector import SensorInitializationError
 
 RESOURCE_DIR_PATH = os.path.join(os.path.dirname(__file__), 'resources')
 
@@ -52,7 +53,7 @@ def start_workout():
 def stop_workout():
     apiInstance.stop_workout()
     time.sleep(3);
-    return '{"msg": "Workout Stopped"}', 201
+    return '{"msg": "Workout Stopped"}', 202
 
 
 @app.route("/workout", methods=["GET"])
@@ -61,6 +62,21 @@ def get_status():
     """
     global apiInstance
     return apiInstance.get_status()
+
+
+@app.route("/calibration", methods=["POST"])
+def trigger_calibration():
+    """
+    Runs calibration.
+    :return:
+    """
+    global apiInstance
+    try:
+        apiInstance.trigger_calibration()
+        return '{"msg": "Calibrated"}', 200
+    except SensorInitializationError:
+        return '{"msg": "Calibration failed"}', 500
+
 
 
 class SparpiServer:
@@ -96,6 +112,9 @@ class SparpiServer:
     def get_status(self):
         workout_data = self.driver.get_state()
         return json.dumps(workout_data, default=serialize_status)
+
+    def trigger_calibration(self):
+        self.driver.calibrate_orientation()
 
 
 def serialize_status(obj):

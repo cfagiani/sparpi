@@ -22,6 +22,10 @@
         $('#timeLeft').keyup(function () {
             validateInput();
         });
+
+        $('#recalibrate').click(function () {
+            recalibrate();
+        });
     });
 
 
@@ -35,6 +39,7 @@
                 updateWorkoutInfo(json);
                 if (json['deadline'] - json['server_time'] <= 0) {
                     cancelPoll();
+                    $('#recalibrate').removeClass("disabled");
                 }
             });
     }
@@ -96,16 +101,30 @@
      * Cancels the current workout.
      */
     function stopWorkout() {
-        cancelPoll()
+        cancelPoll();
         $.ajax({
             url: '/workout',
             type: "POST",
             success: function () {
                 $("#startbutton").removeClass("disabled");
+                $('#recalibrate').removeClass("disabled");
             }
         });
     }
 
+
+    function recalibrate() {
+        $.ajax({
+            url: '/calibration',
+            type: "POST"
+        });
+    }
+
+    /**
+     * Validates that we have a valid value in the timeLeft text input box. Input should be in the format
+     * SS  or MM:SS. Max time allowed is 99:99.
+     * @returns {boolean}
+     */
     function validateInput() {
         var isValid = /^([0-9]?[0-9])(:[0-9][0-9])?$/.test($("#timeLeft").val());
         if (isValid) {
@@ -167,6 +186,7 @@
                 dataType: "json",
                 contentType: "application/json; charset=utf-8",
                 success: function () {
+                    $('#recalibrate').addClass("disabled");
                     pollerInterval = setInterval(pollForData, 500);
                 }
             });

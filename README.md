@@ -6,6 +6,8 @@ This project allows you to build a component comprised of an accelerometer and t
 ## Required Hardware:
 * Raspberry Pi
 * Breadboard
+* PiCobbler
+* ~3' ribbon cable (for connecting Pi to breadboard)
 * 3 LEDs
 * 3 330 Ohm Resistors
 * Jumper wires
@@ -38,6 +40,11 @@ install the smbus & GPIO python libraries:
 sudo apt-get install python-smbus i2c-tools python-dev python-rpi.gpio
 ```
 
+Install flask unless only running headless:
+```
+sudo pip install flask
+```
+
 ## Configuration
 The scarpi.ini file contains all the configurable options for the system. These properties are described below:
 ### Sensor section
@@ -58,7 +65,14 @@ After wiring the sensor and LED, the program can be used by running the sparpi.p
 ```
 sudo python sparpi.py
 ```
-This will run a "random" workout for 2 minutes. The lenght of the workout can be changed via the --time command line option.
+This will launch the UI server on port 80 (port can be overridden via the --port option). Connect to the UI via a browser
+and use it to start a workout. 
+
+Alternatively, the system can run in "headless" mode. In this mode, it takes the workout time on the command line and terminates after the workout concludes:
+```
+sudo python sparpi.py --headless --time .5 
+```
+
 
 ## Unit Tests
 Tests are contained in the "test" directory. To run all tests:
@@ -69,7 +83,9 @@ python -m unittest discover -v
 ## TODO:
 * selectable workout types (random, combinations)
 * build-your-own combination (ui configurable)
+* random delay between light signals?
 * hit count-based workouts
 * more tests
 * log workout stats & have ui for browsing history
+* wiring diagram & photos
 

@@ -78,6 +78,7 @@ class WorkoutController(object):
             time.sleep(0.5)
             self.led_controller.activate_lights('c')
             c_val = self.hit_detector.calibrate_hit('c', self.calibration_timeout)
+            self.led_controller.activate_lights('')
             if self.hit_detector.has_valid_calibration():
                 log.debug("Got valid calibration r: {r}, l: {lv}, c: {c}".format(r=r_val, lv=l_val, c=c_val))
                 return

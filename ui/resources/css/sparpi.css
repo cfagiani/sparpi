@@ -20,7 +20,7 @@ html {
     max-width: 700px;
 }
 
-#time-ctl {
+.time-ctl {
     min-width: 65px;
 }
 
