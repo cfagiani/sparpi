@@ -1,6 +1,7 @@
 import unittest
 import os
 from engine import workout_controller
+from engine.workout_controller import ConfigurationError
 from engine.hit_detector import SensorInitializationError
 from mocks import MockHitDetector
 from mocks import MockLedController
@@ -28,7 +29,7 @@ class TestWorkoutController(unittest.TestCase):
         controller = workout_controller.WorkoutController(os.path.join(DATA_DIR_PATH, "test.ini"),
                                                           controller=self.led,
                                                           detector=self.detector)
-        controller.calibrate_orientation(1)
+        controller.calibrate_orientation()
         self.assertEqual(1, self.led.get_invocation_count("flash"))
         self.assertEqual(3, self.detector.get_invocation_count("calibrate_hit"))
 
@@ -43,11 +44,35 @@ class TestWorkoutController(unittest.TestCase):
             controller = workout_controller.WorkoutController(os.path.join(DATA_DIR_PATH, "test.ini"),
                                                               controller=self.led,
                                                               detector=self.detector)
-            controller.calibrate_orientation(2)
+            controller.calibrate_orientation()
         except Exception as e:
             self.assertEquals(type(e), SensorInitializationError)
             got_error = True
         self.assertTrue(got_error)
+
+    def test_single_side_selection(self):
+        freq = {'l': 0, 'c': 0, 'r': 100}
+        for i in range(1000):
+            self.assertEqual(workout_controller.get_next_side(freq), 'r')
+
+    def test_two_side_selection(self):
+        freq = {'l': 50, 'c': 0, 'r': 50}
+        for i in range(1000):
+            self.assertNotEqual(workout_controller.get_next_side(freq), 'c')
+
+    def test_frequency_validation_over_100(self):
+        try:
+            workout_controller.validate_frequencies({'l': 50, 'c': 0, 'r': 51})
+            self.assertFalse(True, "Expected exception")
+        except Exception as e:
+            self.assertEquals(type(e), ConfigurationError)
+
+    def test_frequency_validation_negative(self):
+        try:
+            workout_controller.validate_frequencies({'l': -5, 'c': 55, 'r': 50})
+            self.assertFalse(True, "Expected exception")
+        except Exception as e:
+            self.assertEquals(type(e), ConfigurationError)
 
 
 def throw_error(val):

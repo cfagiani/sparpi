@@ -103,7 +103,8 @@ class SparpiServer:
             self.driver.calibrate_orientation()
         if self.workout_thread is None or not self.workout_thread.isAlive():
             self.workout_thread = threading.Thread(target=self.driver.start_workout, args=(config['mode'],
-                                                                                           config['time']))
+                                                                                           config['time'],
+                                                                                           config['frequencies']))
             self.workout_thread.start()
 
     def stop_workout(self):

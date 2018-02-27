@@ -23,6 +23,11 @@
             validateInput();
         });
 
+        $('.freq-ctl').keyup(function () {
+            validateInput();
+        });
+
+
         $('#recalibrate').click(function () {
             recalibrate();
         });
@@ -121,20 +126,59 @@
     }
 
     /**
-     * Validates that we have a valid value in the timeLeft text input box. Input should be in the format
-     * SS  or MM:SS. Max time allowed is 99:99.
+     *  Validates the time input box. Time input should be in the format SS  or MM:SS. Max time allowed is 99:99.
      * @returns {boolean}
      */
-    function validateInput() {
+    function validateTime() {
         var isValid = /^([0-9]?[0-9])(:[0-9][0-9])?$/.test($("#timeLeft").val());
         if (isValid) {
             $("#timeForm").removeClass("text-danger");
-            $("#startbutton").removeClass("disabled");
             $("#timeLeft").removeClass("is-invalid");
         } else {
             $("#timeForm").addClass("text-danger");
-            $("#startbutton").addClass("disabled");
             $("#timeLeft").addClass("is-invalid");
+        }
+        return isValid;
+    }
+
+    /**
+     *  Validates the side frequency values. Frequencies should be an integer between 0 and 100 with a sum of
+     * exactly 100.
+     */
+    function validateFrequencies() {
+        //TODO: check this
+        var freqElements = $(".freq-ctl");
+        var total = 0
+        for (var i = 0; i < freqElements.length; i++) {
+            var element = freqElements.eq(i);
+            var val = element.val();
+            var isValid = /^([1]?[0-9]?[0-9])$/.test(val);
+            if (isValid) {
+                element.removeClass("text-danger");
+            } else {
+                element.addClass("text-danger");
+                return false;
+            }
+            total += parseInt(val);
+        }
+        if (total != 100) {
+            freqElements.addClass("text-danger");
+            return false;
+        }
+        return true;
+    }
+
+
+    /**
+     * Validates that we have a valid value in the timeLeft and frequency text input boxes.
+     * @returns {boolean}
+     */
+    function validateInput() {
+        var isValid = validateTime() && validateFrequencies();
+        if (isValid) {
+            $("#startbutton").removeClass("disabled");
+        } else {
+            $("#startbutton").addClass("disabled");
         }
         return isValid;
     }
@@ -182,7 +226,15 @@
             $.ajax({
                 url: '/workout',
                 type: "PUT",
-                data: JSON.stringify({time: timeStringToSeconds($("#timeLeft").val()), mode: 'random'}),
+                data: JSON.stringify({
+                    time: timeStringToSeconds($("#timeLeft").val()),
+                    mode: 'random',
+                    frequencies: {
+                        'r': parseInt($("#rFreq").val()),
+                        'c': parseInt($("#cFreq").val()),
+                        'l': parseInt($("#lFreq").val())
+                    }
+                }),
                 dataType: "json",
                 contentType: "application/json; charset=utf-8",
                 success: function () {

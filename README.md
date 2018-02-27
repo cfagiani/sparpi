@@ -88,4 +88,4 @@ python -m unittest discover -v
 * more tests
 * log workout stats & have ui for browsing history
 * wiring diagram & photos
-
+* move all headless config to config file & remove cli options (except for --config and --time)

@@ -86,12 +86,13 @@ class WorkoutController(object):
                 log.info("Invalid calibration r: {r}, l: {lv}, c: {c}".format(r=r_val, lv=l_val, c=c_val))
         raise SensorInitializationError("Could not obtain a valid calibration")
 
-    def start_workout(self, mode, workout_time):
+    def start_workout(self, mode, workout_time, frequencies={'l': 33, 'c': 33, 'r': 34}):
         """
         Executes the workout loop until it is over (either time elapses or the programmed workout is finished).
 
         :param mode:
         :param workout_time:
+        :param frequencies:
         :return:
         """
         self.is_running = True
@@ -101,11 +102,12 @@ class WorkoutController(object):
         hit_count = 0
         miss_count = 0
         sides = ['r', 'c', 'l']
+        frequencies = validate_frequencies(frequencies)
         while time.time() < deadline and self.is_running:
             self.led_controller.activate_lights('')
             self.hit_detector.wait_for_stability(self.recoil_wait)
             if mode == 'random':
-                side = sides[randrange(0, 3)]
+                side = get_next_side(frequencies)
             else:
                 side = sides[round_num % 3]
             if self.await_hit(side):
@@ -145,6 +147,30 @@ class WorkoutController(object):
         self.is_running = False
 
 
+def validate_frequencies(frequencies):
+    """
+    Validates that the frequencies passed in add up to 100 and do not contain negatives.
+    :param frequencies:
+    :return:
+    """
+    if sum(frequencies.values()) != 100:
+        raise ConfigurationError("Frequency weights must add up to 100")
+    if len([z for z in frequencies.values() if 0 <= z <= 100]) != len(frequencies):
+        raise ConfigurationError("Frequency weights must be between 0 and 100, inclusive.")
+
+
+def get_next_side(frequencies):
+    """ Returns a key from frequencies using the values to weigh the likelihood of selection.
+    This assumes the frequency map has values in the range of 0,100 (inclusive) and that they add up to 100."""
+    val = randrange(1, 101)
+    last_weight = 0
+    for side, weight in frequencies.iteritems():
+        if 0 < val <= last_weight + weight:
+            return side
+        else:
+            last_weight += weight
+
+
 class WorkoutState(object):
 
     def __init__(self, deadline):
@@ -167,3 +193,7 @@ class HitStats(object):
     def __init__(self, direction, reaction_time):
         self.direction = direction
         self.time = reaction_time
+
+
+class ConfigurationError(Exception):
+    pass
