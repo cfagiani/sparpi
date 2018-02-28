@@ -6,8 +6,9 @@ Simple utility to run the UI/API server with a mocked controller. You can run fr
 python -m test.mock_ui_driver
 """
 
+
 def run():
-    controller = MockWorkoutController();
+    controller = MockWorkoutController()
     api = ui_server.SparpiServer(8888, controller)
     api.start()
 

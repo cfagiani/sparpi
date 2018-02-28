@@ -89,7 +89,7 @@ class MockWorkoutController(Mock):
         self.cur_workout = None
         self.is_running = False
 
-    def start_workout(self, mode, workout_time):
+    def start_workout(self, mode, workout_time, frequencies={'l': 33, 'c': 33, 'r': 34}):
         self.is_running = True
         self.cur_workout = WorkoutState(time.time() + workout_time)
         while time.time() < self.cur_workout.deadline and self.is_running:
@@ -104,3 +104,6 @@ class MockWorkoutController(Mock):
 
     def stop_workout(self):
         self.is_running = False
+
+    def has_valid_calibration(self):
+        return True
