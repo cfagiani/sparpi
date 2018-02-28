@@ -44,7 +44,8 @@
                 updateWorkoutInfo(json);
                 if (json['deadline'] - json['server_time'] <= 0) {
                     cancelPoll();
-                    $('#recalibrate').removeClass("disabled");
+                    //turn the input fields back on
+                    toggleAllowInput(true);
                 }
             });
     }
@@ -111,8 +112,7 @@
             url: '/workout',
             type: "POST",
             success: function () {
-                $("#startbutton").removeClass("disabled");
-                $('#recalibrate').removeClass("disabled");
+                toggleAllowInput(true);
             }
         });
     }
@@ -238,7 +238,8 @@
                 dataType: "json",
                 contentType: "application/json; charset=utf-8",
                 success: function () {
-                    $('#recalibrate').addClass("disabled");
+                    //turn off input fields
+                    toggleAllowInput(false);
                     pollerInterval = setInterval(pollForData, 500);
                 }
             });
@@ -252,15 +253,28 @@
         var buttonElement = $("#startbutton");
         if (buttonElement.text() === "Start") {
             buttonElement.text("Stop");
-            $("#timeLeft").addClass("no-border");
             startWorkout();
         } else {
             //disable since stopping may take a few seconds. the callback in stopWorkout should re-enable`
             buttonElement.addClass("disabled");
             stopWorkout();
             buttonElement.text("Start");
-            $("#timeLeft").removeClass("no-border");
         }
+    }
+
+    /**
+     * Enables or disables the text input fields.
+     * @param isEnabled
+     */
+    function toggleAllowInput(isEnabled) {
+        if (isEnabled) {
+            $(".conf-ctl").removeClass("disabled");
+            $(".conf-ctl:input").attr("disabled", false);
+        } else {
+            $(".conf-ctl").addClass("disabled");
+            $(".conf-ctl:input").attr("disabled", true);
+        }
+
     }
 })();
 
