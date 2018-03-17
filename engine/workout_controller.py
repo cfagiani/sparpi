@@ -102,7 +102,7 @@ class WorkoutController(object):
         hit_count = 0
         miss_count = 0
         sides = ['r', 'c', 'l']
-        frequencies = validate_frequencies(frequencies)
+        validate_frequencies(frequencies)
         while time.time() < deadline and self.is_running:
             self.led_controller.activate_lights('')
             self.hit_detector.wait_for_stability(self.recoil_wait)

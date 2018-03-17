@@ -78,7 +78,6 @@ def trigger_calibration():
         return '{"msg": "Calibration failed"}', 500
 
 
-
 class SparpiServer:
     def __init__(self, port, workout_controller):
         """Sets up the Flask webserver to run on the port passed in
@@ -102,9 +101,10 @@ class SparpiServer:
         if not self.driver.has_valid_calibration():
             self.driver.calibrate_orientation()
         if self.workout_thread is None or not self.workout_thread.isAlive():
-            self.workout_thread = threading.Thread(target=self.driver.start_workout, args=(config['mode'],
-                                                                                           config['time'],
-                                                                                           config['frequencies']))
+            self.workout_thread = threading.Thread(target=self.driver.start_workout,
+                                                   args=(config['mode'],
+                                                         config['time']),
+                                                   kwargs={'frequencies': config['frequencies']})
             self.workout_thread.start()
 
     def stop_workout(self):
