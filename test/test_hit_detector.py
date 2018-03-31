@@ -12,7 +12,7 @@ class TestHitDetector(unittest.TestCase):
         sensor = MockSensor(lambda x: [x * 12, x * 12, x * 12])
         timeout = 1
         try:
-            hit_detector.HitDetector(1, timeout, 1, sensor)
+            hit_detector.HitDetector(1, timeout, 1, True, sensor)
             self.assertTrue(False, "Expected a timeout")
         except Exception as e:
             self.assertEquals(type(e), hit_detector.SensorInitializationError)
@@ -23,7 +23,7 @@ class TestHitDetector(unittest.TestCase):
         finished_init = False
         got_error = False
         try:
-            detector = hit_detector.HitDetector(1, timeout, 1, sensor)
+            detector = hit_detector.HitDetector(1, timeout, 1, True, sensor)
             finished_init = True
             detector.calibrate_hit('r', 1)
         except Exception as e:
@@ -35,7 +35,7 @@ class TestHitDetector(unittest.TestCase):
     def test_calibration(self):
         sensor = MockSensor(lambda x: [0, 0, 0] if x <= 4 else [5, 5, 5])
         timeout = 10
-        detector = hit_detector.HitDetector(3, timeout, 1, sensor)
+        detector = hit_detector.HitDetector(3, timeout, 1, True, sensor)
         detector.calibrate_hit('r', timeout)
 
     def test_zero_magnitude(self):

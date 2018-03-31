@@ -24,6 +24,7 @@ class WorkoutController(object):
             config.read(conf_file)
             self.cur_workout = None
             self.is_running = False
+            self.detect_dir = config.getboolean("workout", "detect_direction")
             self.calibration_timeout = config.getint("sensor", "calibration_timeout")
             if controller:
                 self.led_controller = controller
@@ -44,7 +45,8 @@ class WorkoutController(object):
                 # initialize the hit_detector
                 self.hit_detector = hit_detector.HitDetector(config.getfloat("sensor", "threshold"),
                                                              config.getfloat("sensor", "calibration_timeout"),
-                                                             config.getint("sensor", "samples"))
+                                                             config.getint("sensor", "samples"),
+                                                             detect_dir=self.detect_dir)
         except BaseException as e:
             # if we had an error during initialization call clean-up so we can release any resources
             try:

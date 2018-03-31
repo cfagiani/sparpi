@@ -65,7 +65,7 @@ class MockHitDetector(Mock):
     Mock hitDetector implementation
     """
 
-    def __init__(self, threshold, timeout, samples, sensor):
+    def __init__(self, threshold, timeout, samples, detect_dir, sensor):
         super(MockHitDetector, self).__init__()
         self.threshold = threshold
         self.reference_curves = {}

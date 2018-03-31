@@ -17,7 +17,7 @@ class TestWorkoutController(unittest.TestCase):
         Sets up default mocked dependencies for use in the controller constructor
         :return:
         """
-        self.detector = MockHitDetector(1, 1, 1, MockSensor(lambda x: (x, x, x)))
+        self.detector = MockHitDetector(1, 1, 1, True, MockSensor(lambda x: (x, x, x)))
         self.led = MockLedController({'r': 1, 'c': 2, 'l': 3})
 
     def test_initialization(self):

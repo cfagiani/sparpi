@@ -12,13 +12,14 @@ class HitDetector(object):
     Class that uses the accelerometer to detect when the bag is hit.
     """
 
-    def __init__(self, threshold, timeout, samples, sensor=None):
+    def __init__(self, threshold, timeout, samples, detect_dir=True, sensor=None):
         self.threshold = threshold
         self.reference_angles = {}
         self.baseline = None
         self.samples = samples
         self.stability_threshold = 5
         self.min_calibration_distance = 10
+        self.detect_direction = detect_dir
         if sensor is None:
             from engine.io import accel
             self.sensor = accel.Accelerometer()
@@ -93,7 +94,10 @@ class HitDetector(object):
                 if side is None:
                     return diff, True
                 else:
-                    detected_side = get_hit_side(self.reference_angles, get_angle(diff))
+                    if self.detect_direction:
+                        detected_side = get_hit_side(self.reference_angles, get_angle(diff))
+                    else:
+                        return diff, True
                 if side == detected_side:
                     return diff, True
                 else:
