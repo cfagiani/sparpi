@@ -82,7 +82,6 @@ python -m unittest discover -v
 
 ## TODO:
 * selectable workout types (random, combinations)
-* random delay between light signals?
 * hit count-based workouts
 * more tests
 * log workout stats & have ui for browsing history
