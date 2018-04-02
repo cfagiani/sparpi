@@ -54,6 +54,8 @@ The scarpi.ini file contains all the configurable options for the system. These 
 ### Workout section
 * reaction_timeout - time in seconds the system will wait for a hit after activating a light
 * recoil_wait - time in seconds after a hit to wait before starting to wait for the next hit
+* detect_direction - flag (True or False) indicating whether the direction of impact should be considered when evaluating a hit. If fase, any impact counts.
+* random_delay - flag (True or False) indicating whether the system should use a random delay between hits. If false, the next hit signal is triggered immedately after the previous.
 ### Lights section
 * right - GPIO pin connected to the right LED
 * left - GPIO pin connected to the left LED
@@ -81,9 +83,7 @@ python -m unittest discover -v
 ```
 
 ## TODO:
-* selectable workout types (random, combinations)
-* hit count-based workouts
-* more tests
+* more/better tests
 * log workout stats & have ui for browsing history
 * wiring diagram & photos
 * move all headless config to config file & remove cli options (except for --config and --time)
