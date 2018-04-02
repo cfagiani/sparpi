@@ -6,6 +6,7 @@ import ConfigParser
 import time
 import logging
 from random import randrange
+from random import randint
 from hit_detector import SensorInitializationError
 
 log = logging.getLogger(__name__)
@@ -26,6 +27,7 @@ class WorkoutController(object):
             self.is_running = False
             self.detect_dir = config.getboolean("workout", "detect_direction")
             self.calibration_timeout = config.getint("sensor", "calibration_timeout")
+            self.random_delay = config.getboolean("workout", "random_delay")
             if controller:
                 self.led_controller = controller
             else:
@@ -108,6 +110,8 @@ class WorkoutController(object):
         while time.time() < deadline and self.is_running:
             self.led_controller.activate_lights('')
             self.hit_detector.wait_for_stability(self.recoil_wait)
+            if self.random_delay:
+                time.sleep(randint(0, 4))
             if mode == 'random':
                 side = get_next_side(frequencies)
             else:
